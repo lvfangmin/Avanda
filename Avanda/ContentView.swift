@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
     @StateObject private var viewModel = MathGameViewModel()
     @State private var isAnswerCorrect = false
@@ -14,28 +15,23 @@ struct ContentView: View {
     @State private var mascotRotation: Double = 0
     @State private var mascotY: CGFloat = 0
     
-    var catMascot: some View {
+    var owlMascot: some View {
         VStack {
             ZStack {
-                // Cat head
+                // Owl body
                 Circle()
                     .fill(Color.white)
                     .frame(width: 100, height: 100)
                     .shadow(color: .gray.opacity(0.3), radius: 5)
                 
-                // Cat ears
-                HStack(spacing: 55) {
-                    // Left ear
-                    Triangle()
+                // Owl ears
+                HStack(spacing: 45) {
+                    Circle()
                         .fill(Color.pink.opacity(0.3))
-                        .frame(width: 25, height: 25)
-                        .rotationEffect(.degrees(30))
-                    
-                    // Right ear
-                    Triangle()
+                        .frame(width: 30, height: 30)
+                    Circle()
                         .fill(Color.pink.opacity(0.3))
-                        .frame(width: 25, height: 25)
-                        .rotationEffect(.degrees(-30))
+                        .frame(width: 30, height: 30)
                 }
                 .offset(y: -35)
                 
@@ -44,71 +40,51 @@ struct ContentView: View {
                     // Left eye
                     ZStack {
                         Circle()
-                            .fill(isAnswerCorrect ? Color.green.opacity(0.7) : Color.black)
-                            .frame(width: 15, height: 15)
+                            .fill(.purple.opacity(0.3))
+                            .frame(width: 35, height: 35)
+                        Circle()
+                            .fill(isAnswerCorrect ? Color.pink.opacity(0.7) : Color.black)
+                            .frame(width: 20, height: 20)
                         Circle()
                             .fill(Color.white)
-                            .frame(width: 5, height: 5)
-                            .offset(x: 2, y: -2)
+                            .frame(width: 8, height: 8)
+                            .offset(x: 3, y: -3)
                     }
                     
                     // Right eye
                     ZStack {
                         Circle()
-                            .fill(isAnswerCorrect ? Color.green.opacity(0.7) : Color.black)
-                            .frame(width: 15, height: 15)
+                            .fill(.purple.opacity(0.3))
+                            .frame(width: 35, height: 35)
+                        Circle()
+                            .fill(isAnswerCorrect ? Color.pink.opacity(0.7) : Color.black)
+                            .frame(width: 20, height: 20)
                         Circle()
                             .fill(Color.white)
-                            .frame(width: 5, height: 5)
-                            .offset(x: 2, y: -2)
+                            .frame(width: 8, height: 8)
+                            .offset(x: 3, y: -3)
                     }
                 }
                 
-                // Nose
+                // Beak
                 Triangle()
-                    .fill(Color.pink)
-                    .frame(width: 8, height: 6)
+                    .fill(.orange)
+                    .frame(width: 12, height: 10)
                     .rotationEffect(.degrees(180))
                     .offset(y: 12)
                 
-                // Whiskers
-                ForEach(-1...1, id: \.self) { i in
-                    HStack(spacing: 45) {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 15, height: 1)
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 15, height: 1)
-                    }
-                    .offset(y: CGFloat(i * 4) + 12)
+                // Happy mouth
+                Path { path in
+                    path.move(to: CGPoint(x: -10, y: 0))
+                    path.addQuadCurve(
+                        to: CGPoint(x: 10, y: 0),
+                        control: CGPoint(x: 0, y: 8)
+                    )
                 }
+                .stroke(Color.black, lineWidth: 1.5)
+                .frame(width: 20, height: 10)
+                .offset(x: 10, y: 30)
                 
-                // Mouth
-                Group {
-                    if isAnswerCorrect {
-                        // Happy mouth
-                        Path { path in
-                            path.move(to: CGPoint(x: -10, y: 0))
-                            path.addQuadCurve(
-                                to: CGPoint(x: 10, y: 0),
-                                control: CGPoint(x: 0, y: 8)
-                            )
-                        }
-                        .stroke(Color.black, lineWidth: 1.5)
-                        .frame(width: 20, height: 10)
-                        .offset(x: 10, y: 30)
-                    } else {
-                        // Regular mouth
-                        Path { path in
-                            path.move(to: CGPoint(x: -7, y: 0))
-                            path.addLine(to: CGPoint(x: 7, y: 0))
-                        }
-                        .stroke(Color.black, lineWidth: 1.5)
-                        .frame(width: 14, height: 1)
-                        .offset(x: 7, y: 30)
-                    }
-                }
             }
             .offset(y: mascotY)
             .rotationEffect(.degrees(mascotRotation))
@@ -161,8 +137,8 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                // Cat mascot
-                catMascot
+                // Owl mascot
+                owlMascot
                     .padding(.bottom, 30)
                 
                 // Math problem card
@@ -171,8 +147,8 @@ struct ContentView: View {
                         .font(.system(size: 40, weight: .bold))
                         .foregroundColor(.purple)
                     
-                    // Answer input field
-                    TextField("Type your answer", text: $viewModel.userAnswer)
+                    // Updated Answer input field with fixed keyboard type
+                    TextField("", text: $viewModel.userAnswer)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .font(.title)
                         .multilineTextAlignment(.center)
@@ -224,7 +200,7 @@ struct ContentView: View {
             .padding()
         }
         .sheet(isPresented: $viewModel.showReward) {
-            RewardView()
+            FireworkView()
         }
         .sheet(isPresented: $viewModel.showYouTubeReward) {
             YouTubeRewardView()
@@ -234,44 +210,30 @@ struct ContentView: View {
 
 struct RewardView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var scale: CGFloat = 0.5
     
     var body: some View {
         VStack(spacing: 20) {
             Text("🎉 Great Job! 🎉")
                 .font(.title.bold())
                 .foregroundColor(.purple)
-                .scaleEffect(scale)
             
             Text("You got 3 in a row!")
                 .font(.title2)
-                .opacity(scale)
             
             Button("Continue Learning") {
-                withAnimation {
-                    scale = 0.5
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        dismiss()
-                    }
-                }
+                dismiss()
             }
             .font(.title3.bold())
             .foregroundColor(.white)
             .frame(width: 200, height: 50)
             .background(Color.purple)
             .cornerRadius(25)
-            .scaleEffect(scale)
         }
         .padding()
-        .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
-                scale = 1.0
-            }
-        }
     }
 }
 
-// Helper shape for cat ears
+// Helper shape for owl beak
 struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
