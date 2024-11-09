@@ -12,6 +12,7 @@ class MathGameViewModel: ObservableObject {
     @Published var feedbackMessage = ""
     
     private var difficulty = 1
+    private let soundManager = SoundManager.shared
     
     init() {
         self.currentProblem = MathProblem()
@@ -22,11 +23,13 @@ class MathGameViewModel: ObservableObject {
         guard let answer = Int(userAnswer) else { return }
         
         if answer == currentProblem.answer {
+            soundManager.playCorrectSound()
+            
             score += remainingAttempts * 5
             consecutiveCorrect += 1
             feedbackMessage = "Great job! 🌟"
             
-            if score >= 10 {
+            if score >= 100 {
                 showYouTubeReward = true
                 score = 0
             } else if consecutiveCorrect >= 3 {
@@ -40,6 +43,8 @@ class MathGameViewModel: ObservableObject {
             remainingAttempts = 3
             
         } else {
+            soundManager.playIncorrectSound()
+            
             remainingAttempts -= 1
             
             if remainingAttempts > 0 {

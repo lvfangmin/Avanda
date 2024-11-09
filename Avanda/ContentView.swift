@@ -84,7 +84,7 @@ struct ContentView: View {
                     .offset(y: CGFloat(i * 4) + 12)
                 }
                 
-                // Mouth - Updated position with x offset
+                // Mouth
                 Group {
                     if isAnswerCorrect {
                         // Happy mouth
@@ -118,112 +118,76 @@ struct ContentView: View {
         }
     }
     
-    // Button tap animation
-    func animateMascot() {
-        // Bounce animation
-        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-            mascotY = -10
-        }
-        
-        // Reset bounce
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                mascotY = 0
-            }
-        }
-        
-        // Rotate on correct answer
-        if isAnswerCorrect {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
-                mascotRotation = 360
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                mascotRotation = 0
-            }
-        }
-    }
-    
     var body: some View {
         ZStack {
-            // Cute animated bubble background
+            // Background
             BubbleBackground()
                 .ignoresSafeArea()
             
-            // Content overlay with blur
-            ScrollView {
-                VStack(spacing: 25) {
-                    // Score display with cute star
-                    HStack {
+            // Main content
+            VStack(spacing: 30) {
+                // Top bar with score and hearts
+                HStack {
+                    // Score display
+                    HStack(spacing: 10) {
                         Image(systemName: "star.fill")
                             .foregroundColor(.yellow)
                             .scaleEffect(scale)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.3), value: scale)
                         Text("Score: \(viewModel.score)")
                             .font(.title2.bold())
-                            .foregroundColor(.purple)
                     }
-                    .padding()
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
                     .background(.ultraThinMaterial)
-                    .cornerRadius(15)
+                    .cornerRadius(20)
                     
-                    // Attempts remaining
-                    HStack {
-                        ForEach(0..<viewModel.remainingAttempts, id: \.self) { index in
+                    Spacer()
+                    
+                    // Hearts display
+                    HStack(spacing: 8) {
+                        ForEach(0..<viewModel.remainingAttempts, id: \.self) { _ in
                             Image(systemName: "heart.fill")
                                 .foregroundColor(.pink)
                                 .scaleEffect(scale)
-                                .animation(
-                                    .spring(response: 0.3, dampingFraction: 0.3)
-                                    .delay(Double(index) * 0.1),
-                                    value: scale
-                                )
                         }
                     }
                     .font(.title2)
-                    
-                    // Cute mascot
-                    catMascot
-                    
-                    // Math problem display
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+                
+                // Cat mascot
+                catMascot
+                    .padding(.bottom, 30)
+                
+                // Math problem card
+                VStack(spacing: 20) {
                     Text(viewModel.currentProblem.question)
                         .font(.system(size: 40, weight: .bold))
                         .foregroundColor(.purple)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
                     
-                    // Feedback message
-                    if !viewModel.feedbackMessage.isEmpty {
-                        Text(viewModel.feedbackMessage)
-                            .font(.title3)
-                            .foregroundColor(.purple)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(15)
-                    }
-                    
-                    // Number input
-                    TextField("Your answer", text: $viewModel.userAnswer)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.oneTimeCode)
+                    // Answer input field
+                    TextField("Type your answer", text: $viewModel.userAnswer)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                         .font(.title)
                         .multilineTextAlignment(.center)
                         .frame(width: 150)
-                        .background(.ultraThinMaterial)
+                        .padding()
                     
                     // Check button
                     Button(action: {
                         withAnimation {
                             scale = 1.2
-                            // Bounce mascot
                             mascotY = -20
-                            mascotRotation = isAnswerCorrect ? 360 : -10
                             
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                 scale = 1.0
                                 mascotY = 0
-                                mascotRotation = 0
                             }
                             viewModel.checkAnswer()
                             isAnswerCorrect = viewModel.consecutiveCorrect > 0
@@ -235,10 +199,29 @@ struct ContentView: View {
                             .frame(width: 200, height: 50)
                             .background(Color.purple)
                             .cornerRadius(25)
+                            .shadow(radius: 5)
                     }
                 }
-                .padding()
+                .padding(30)
+                .background(.ultraThinMaterial)
+                .cornerRadius(30)
+                .shadow(radius: 10)
+                
+                // Feedback message
+                if !viewModel.feedbackMessage.isEmpty {
+                    Text(viewModel.feedbackMessage)
+                        .font(.title3)
+                        .foregroundColor(.purple)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(15)
+                        .transition(.scale.combined(with: .opacity))
+                }
+                
+                Spacer()
             }
+            .padding()
         }
         .sheet(isPresented: $viewModel.showReward) {
             RewardView()
