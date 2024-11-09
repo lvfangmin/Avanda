@@ -6,12 +6,12 @@ class MathGameViewModel: ObservableObject {
     @Published var currentProblem: MathProblem
     @Published var userAnswer = ""
     @Published var showReward = false
+    @Published var showYouTubeReward = false
     @Published var consecutiveCorrect = 0
     @Published var remainingAttempts = 3
     @Published var feedbackMessage = ""
     
     private var difficulty = 1
-    private let soundManager = SoundManager.shared
     
     init() {
         self.currentProblem = MathProblem()
@@ -22,40 +22,35 @@ class MathGameViewModel: ObservableObject {
         guard let answer = Int(userAnswer) else { return }
         
         if answer == currentProblem.answer {
-            // Correct answer
-            soundManager.playCorrectSound()
-            score += remainingAttempts * 5 // More points for getting it right with fewer attempts
+            score += remainingAttempts * 5
             consecutiveCorrect += 1
             feedbackMessage = "Great job! 🌟"
             
-            withAnimation {
-                showReward = consecutiveCorrect >= 3
-            }
-            if consecutiveCorrect >= 3 {
+            if score >= 10 {
+                showYouTubeReward = true
+                score = 0
+            } else if consecutiveCorrect >= 3 {
+                showReward = true
                 consecutiveCorrect = 0
             }
             
             updateDifficulty()
             userAnswer = ""
             currentProblem = generateProblem()
-            remainingAttempts = 3 // Reset attempts for next question
+            remainingAttempts = 3
             
         } else {
-            // Wrong answer
             remainingAttempts -= 1
-            soundManager.playIncorrectSound()
             
             if remainingAttempts > 0 {
-                // Still has attempts left
                 feedbackMessage = "Try again! You have \(remainingAttempts) tries left 💪"
                 userAnswer = ""
             } else {
-                // No more attempts, show correct answer and move to next problem
                 feedbackMessage = "The correct answer was \(currentProblem.answer). Let's try another one!"
                 consecutiveCorrect = 0
                 userAnswer = ""
                 currentProblem = generateProblem()
-                remainingAttempts = 3 // Reset attempts for next question
+                remainingAttempts = 3
             }
         }
     }

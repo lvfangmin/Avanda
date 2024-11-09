@@ -243,6 +243,9 @@ struct ContentView: View {
         .sheet(isPresented: $viewModel.showReward) {
             RewardView()
         }
+        .sheet(isPresented: $viewModel.showYouTubeReward) {
+            YouTubeRewardView()
+        }
     }
 }
 

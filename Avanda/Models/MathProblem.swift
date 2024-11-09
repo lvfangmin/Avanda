@@ -22,11 +22,4 @@ struct MathProblem: Equatable {
         default: return 0
         }
     }
-    
-    // Implement Equatable
-    static func == (lhs: MathProblem, rhs: MathProblem) -> Bool {
-        return lhs.num1 == rhs.num1 && 
-               lhs.num2 == rhs.num2 && 
-               lhs.operation == rhs.operation
-    }
 } 
