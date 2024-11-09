@@ -1,38 +1,41 @@
 import SwiftUI
-import AVKit
+import WebKit
 
 struct YouTubeRewardView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var player: AVPlayer?
-    
-    // Sample video from a public source
-    let videoURL = URL(string: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+    @State private var selectedVideo: YouTubeVideo?
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("🎉 Amazing! You've earned a break! 🎉")
+            Text("🎉 Amazing! You've earned a fun video! 🎉")
                 .font(.title2.bold())
                 .foregroundColor(.purple)
                 .multilineTextAlignment(.center)
                 .padding()
             
-            if let player = player {
-                VideoPlayer(player: player)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if isLoading {
+                ProgressView("Loading your reward...")
+            } else if let error = errorMessage {
+                Text(error)
+                    .foregroundColor(.red)
+            } else if let video = selectedVideo {
+                WebViewWrapper(urlString: "https://www.youtube.com/embed/\(video.id)?autoplay=1")
+                    .frame(height: 300)
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.purple.opacity(0.3), lineWidth: 1)
                     )
-                    .aspectRatio(16/9, contentMode: .fit)
-                    .allowsHitTesting(true) // Enable user interaction
-            } else {
-                ProgressView("Loading video...")
-                    .frame(height: 300)
+                
+                Text(video.title)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
             
             Button("Back to Learning") {
-                player?.pause()
                 dismiss()
             }
             .font(.title3.bold())
@@ -42,28 +45,23 @@ struct YouTubeRewardView: View {
             .cornerRadius(25)
         }
         .padding()
-        .frame(minWidth: 800, minHeight: 600)
+        .frame(minWidth: 600, minHeight: 400)
         .onAppear {
-            if let url = videoURL {
-                let playerItem = AVPlayerItem(url: url)
-                player = AVPlayer(playerItem: playerItem)
-                
-                // Enable full-screen support
-                NotificationCenter.default.addObserver(
-                    forName: .AVPlayerItemDidPlayToEndTime,
-                    object: playerItem,
-                    queue: .main
-                ) { _ in
-                    player?.seek(to: .zero)
-                    player?.play()
-                }
-                
-                player?.play()
-            }
+            loadRandomVideo()
         }
-        .onDisappear {
-            player?.pause()
-            player = nil
+    }
+    
+    private func loadRandomVideo() {
+        YouTubeService.shared.fetchEducationalVideos { result in
+            DispatchQueue.main.async {
+                isLoading = false
+                switch result {
+                case .success(let videos):
+                    selectedVideo = videos.randomElement()
+                case .failure(let error):
+                    errorMessage = "Failed to load video: \(error.localizedDescription)"
+                }
+            }
         }
     }
 }
