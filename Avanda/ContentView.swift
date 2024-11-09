@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var scale: CGFloat = 1.0
     @State private var mascotRotation: Double = 0
     @State private var mascotY: CGFloat = 0
+    @State private var showFireworks = false
     
     var owlMascot: some View {
         VStack {
@@ -198,38 +199,25 @@ struct ContentView: View {
                 Spacer()
             }
             .padding()
-        }
-        .sheet(isPresented: $viewModel.showReward) {
-            FireworkView()
+            
+            // Add FireworkView here, conditionally
+            if showFireworks {
+                FireworkView()
+            }
         }
         .sheet(isPresented: $viewModel.showYouTubeReward) {
             YouTubeRewardView()
         }
-    }
-}
-
-struct RewardView: View {
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("🎉 Great Job! 🎉")
-                .font(.title.bold())
-                .foregroundColor(.purple)
-            
-            Text("You got 3 in a row!")
-                .font(.title2)
-            
-            Button("Continue Learning") {
-                dismiss()
+        .onChange(of: viewModel.showReward) { newValue in
+            if newValue {
+                showFireworks = true
+                // Schedule the fireworks to disappear
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    showFireworks = false
+                    viewModel.showReward = false  // Reset the view model state
+                }
             }
-            .font(.title3.bold())
-            .foregroundColor(.white)
-            .frame(width: 200, height: 50)
-            .background(Color.purple)
-            .cornerRadius(25)
         }
-        .padding()
     }
 }
 
