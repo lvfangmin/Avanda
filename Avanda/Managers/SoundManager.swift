@@ -6,21 +6,9 @@ class SoundManager {
     
     private var correctPlayer: AVAudioPlayer?
     private var incorrectPlayer: AVAudioPlayer?
-    private var audioSession: AVAudioSession?
     
     private init() {
-        setupAudioSession()
         setupSounds()
-    }
-    
-    private func setupAudioSession() {
-        do {
-            audioSession = AVAudioSession.sharedInstance()
-            try audioSession?.setCategory(.playback, mode: .default)
-            try audioSession?.setActive(true)
-        } catch {
-            print("Failed to setup audio session: \(error)")
-        }
     }
     
     private func setupSounds() {

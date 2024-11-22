@@ -21,18 +21,13 @@ struct YouTubeRewardView: View {
                 Text(error)
                     .foregroundColor(.red)
             } else if let video = selectedVideo {
-                WebViewWrapper(urlString: "https://www.youtube.com/embed/\(video.id)?autoplay=1")
+                VideoPlayer(videoID: video.id)
                     .frame(height: 300)
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.purple.opacity(0.3), lineWidth: 1)
                     )
-                
-                Text(video.title)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
             }
             
             Button("Back to Learning") {
@@ -57,12 +52,63 @@ struct YouTubeRewardView: View {
                 isLoading = false
                 switch result {
                 case .success(let videos):
-                    selectedVideo = videos.randomElement()
+                    selectedVideo = videos.first
                 case .failure(let error):
                     errorMessage = "Failed to load video: \(error.localizedDescription)"
                 }
             }
         }
+    }
+}
+
+struct VideoPlayer: NSViewRepresentable {
+    let videoID: String
+    
+    func makeNSView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        loadVideo(in: webView)
+        return webView
+    }
+    
+    func updateNSView(_ webView: WKWebView, context: Context) {
+        loadVideo(in: webView)
+    }
+    
+    private func loadVideo(in webView: WKWebView) {
+        let embedHTML = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <style>
+                    body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+                    .video-container { position: relative; padding-bottom: 56.25%; height: 0; }
+                    .video-container iframe {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        border: 0;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/\(videoID)?enablejsapi=1&autoplay=1&playsinline=1"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </body>
+            </html>
+        """
+        
+        webView.loadHTMLString(embedHTML, baseURL: nil)
     }
 }
 
